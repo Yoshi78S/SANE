@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument('--valid_interval', type=int, default=20)
     parser.add_argument('--stopping_step', type=int, default=10)
     parser.add_argument('--show_loss_interval', type=int, default=1)
-    parser.add_argument('--epochs', type=int, default=1000)
+    parser.add_argument('--epochs', type=int, default=1500)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--n_layers', type=int, default=3)
     parser.add_argument('--hidden_dim', type=int, default=64)
@@ -28,6 +28,21 @@ def parse_args():
     parser.add_argument('--beta', type=float, default=1.)
     parser.add_argument('--eigs_dim', type=int, default=64)
     parser.add_argument('--sample_hop', type=int, default=4)
+    parser.add_argument('--item_pair_tau', type=float, default=0.05)
+    parser.add_argument('--item_pair_weight', type=float, default=0.005)
+    parser.add_argument('--item_pair_sample_size', type=int, default=100000)
+    
+    # NiDen parameters (percentile-based thresholds)
+    parser.add_argument('--niden_start_epoch', type=int, default=1500,
+                        help='Epoch to start NiDen denoising (recommend >= 50 for warm-up)')
+    parser.add_argument('--niden_rate_max', type=float, default=0.01,
+                        help='Maximum removal rate (e.g., 0.05 = top 5%% edges removed)')
+    parser.add_argument('--niden_rate_min', type=float, default=0.005,
+                        help='Minimum removal rate (e.g., 0.01 = top 1%% edges removed)')
+    parser.add_argument('--niden_decay_rate', type=float, default=0.00,
+                        help='Rate at which removal rate changes per epoch')
+    parser.add_argument('--niden_update_interval', type=int, default=5,
+                        help='Interval (epochs) between NiDen graph updates')
     return parser.parse_args()
 
 
@@ -58,6 +73,13 @@ print(f'model: {args.model:s}')
 print('Train Setting')
 print(f'    epochs: {args.epochs:d}')
 print(f'    learning rate: {args.learning_rate:f}')
+
+print('NiDen Setting')
+print(f'    start_epoch: {args.niden_start_epoch:d}')
+print(f'    rate_max: {args.niden_rate_max:.4f}')
+print(f'    rate_min: {args.niden_rate_min:.4f}')
+print(f'    decay_rate: {args.niden_decay_rate:.4f}')
+print(f'    update_interval: {args.niden_update_interval:d}')
 
 print('Data Setting')
 train_file = os.path.join(args.data_dir, args.data, f'train.txt')
